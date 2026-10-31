@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>பட்டாசு கடை</title>
+<meta name="description" content="தரமான பட்டாசுகள் - தீபாவளி சிறப்பு தள்ளுபடி விலையில்">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎆</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<div class="page">
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="/" data-i18n-aria="home" aria-label="Home">
+        <span class="logo"><span id="shopLogoFallback">🎆</span><img id="shopLogo" alt="" hidden></span>
+        <span><b id="shopName">பட்டாசு கடை</b><small id="tagline"></small></span>
+      </a>
+      <label class="searchbox" hidden>
+        <span>🔍</span>
+        <input id="q" type="search" data-i18n-ph="searchPh" data-i18n-aria="search" placeholder="" aria-label="Search">
+      </label>
+      <div class="header-actions">
+        <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="ta">தமிழ்</button><button type="button" data-lang="en">EN</button></div>
+        <button class="accountbtn" id="accountBtn" data-i18n="customerAccount">Account</button>
+      </div>
+      <button class="cartbtn" id="openCart" hidden><span data-i18n="cart">🛒 கூடை</span> <span class="count" id="cartCount" data-n="0"></span></button>
+    </div>
+  </header>
+
+  <div class="marquee" aria-hidden="true"><div id="marquee"></div></div>
+  <nav class="customer-nav" id="customerNav" aria-label="Customer pages" hidden>
+    <div class="wrap">
+      <button type="button" data-page="home" data-i18n="navHome"></button>
+      <button type="button" data-page="cart" data-i18n="navCart"></button>
+      <button type="button" data-page="orders" data-i18n="navOrders"></button>
+      <button type="button" data-page="account" data-i18n="navAccount"></button>
+    </div>
+  </nav>
+
+  <main id="homePage">
+    <section class="hero">
+      <div class="wrap">
+        <span class="badge" id="festival">தீபாவளி சிறப்பு விற்பனை</span>
+        <h1 data-i18n-html="heroH1">வெடிக்கட்டும் <em>கொண்டாட்டம்!</em></h1>
+        <p id="heroText">குடும்பத்துடன் மகிழ்ச்சியாக கொண்டாட தரமான, பாதுகாப்பான பட்டாசுகள் - நேரடி விலையில்.</p>
+        <div class="cta">
+          <a class="btn primary" href="#shop" data-products-entry data-i18n="ctaShop"></a>
+          <a class="btn ghost" href="#safety" data-i18n="ctaSafety"></a>
+        </div>
+        <div class="trust">
+          <div><span>🏭</span><i style="font-style:normal" data-i18n="trust1"></i></div>
+          <div><span>✅</span><i style="font-style:normal" data-i18n="trust2"></i></div>
+          <div><span>📦</span><i style="font-style:normal" data-i18n="trust3"></i></div>
+          <div><span>📞</span><i style="font-style:normal" data-i18n="trust4"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block howto" id="how-to-order">
+      <div class="wrap">
+        <h2 class="sec-title" data-i18n="howTitle"></h2>
+        <p class="sec-sub" data-i18n="howSub"></p>
+        <ol class="order-steps">
+          <li><span>1</span><div><b data-i18n="how1Title"></b><small data-i18n="how1"></small></div></li>
+          <li><span>2</span><div><b data-i18n="how2Title"></b><small data-i18n="how2"></small></div></li>
+          <li><span>3</span><div><b data-i18n="how3Title"></b><small data-i18n="how3"></small></div></li>
+          <li><span>4</span><div><b data-i18n="how4Title"></b><small data-i18n="how4"></small></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block" id="shop">
+      <div class="wrap">
+        <h2 class="sec-title" data-i18n="shopTitle"></h2>
+        <p class="sec-sub" data-i18n="shopSub"></p>
+        <div class="toolbar" hidden>
+          <div class="chips" id="chips" role="tablist"></div>
+          <select class="sort" id="sort" data-i18n-aria="sortLbl" aria-label="Sort">
+            <option value="pop" data-i18n="sortPop"></option>
+            <option value="low" data-i18n="sortLow"></option>
+            <option value="high" data-i18n="sortHigh"></option>
+            <option value="off" data-i18n="sortOff"></option>
+          </select>
+        </div>
+        <div class="grid" id="grid" aria-live="polite" hidden></div>
+        <p class="preview-prompt" id="previewPrompt" data-i18n="previewPrompt" hidden></p>
+      </div>
+    </section>
+
+    <section class="block" id="safety">
+      <div class="wrap">
+        <h2 class="sec-title" data-i18n="safetyTitle"></h2>
+        <p class="sec-sub" data-i18n="safetySub"></p>
+        <div class="safety">
+          <div><b data-i18n="s1t"></b><span data-i18n="s1"></span></div>
+          <div><b data-i18n="s2t"></b><span data-i18n="s2"></span></div>
+          <div><b data-i18n="s3t"></b><span data-i18n="s3"></span></div>
+          <div><b data-i18n="s4t"></b><span data-i18n="s4"></span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="drawer cart-page" id="drawer" hidden>
+    <header><h2 data-i18n="cartTitle"></h2><button class="x" id="closeCart" data-i18n-aria="close" aria-label="Close">✕</button></header>
+    <div class="scroll" id="cartBody"></div>
+    <div class="sum" id="cartSum" hidden>
+      <div class="r"><span data-i18n="mrpTotal"></span><span id="sMrp"></span></div>
+      <div class="r save"><span data-i18n="youSave"></span><span id="sSave"></span></div>
+      <div class="r tot"><span data-i18n="toPay"></span><b id="sTot"></b></div>
+      <div class="min-note" id="minNote"></div>
+      <div class="checkout-guidance">
+        <strong data-i18n="orderNextTitle"></strong>
+        <p data-i18n="orderNext"></p>
+        <p id="checkoutNote" hidden></p>
+        <a id="checkoutPhone"></a>
+      </div>
+      <form class="form" id="orderForm" novalidate>
+        <div class="field"><label for="cName" data-i18n="fName"></label><input id="cName" autocomplete="name" required></div>
+        <div class="field"><label for="cPhone" data-i18n="fPhone"></label><input id="cPhone" type="tel" inputmode="numeric" maxlength="15" autocomplete="tel" required></div>
+        <div class="field"><label for="cAddr" data-i18n="fAddress"></label><textarea id="cAddr" rows="2" autocomplete="street-address" required></textarea></div>
+        <div class="field"><label for="cNote" data-i18n="fNote"></label><input id="cNote"></div>
+        <button class="btn primary" type="submit" id="placeBtn" style="justify-content:center" data-i18n="place"></button>
+      </form>
+    </div>
+  </aside>
+
+  <section class="customer-page" id="ordersPage" hidden>
+    <div class="wrap customer-content">
+      <h1 class="sec-title" data-i18n="customerOrders"></h1>
+      <p class="sec-sub" data-i18n="ordersPageText"></p>
+      <div class="account-orders" id="customerOrderList"></div>
+    </div>
+  </section>
+
+  <section class="customer-page" id="accountPage" hidden>
+    <div class="wrap customer-content">
+      <h1 class="sec-title" data-i18n="accountTitle"></h1>
+      <section class="profile-card" id="customerProfile"></section>
+      <button class="btn ghost" id="accountLogout" type="button" data-i18n="customerLogout"></button>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="cols">
+        <div><h4 id="fName">கடை</h4><div id="fTag"></div></div>
+        <div><h4 data-i18n="fAddr"></h4><div id="fAddr"></div></div>
+        <div><h4 data-i18n="fContact"></h4><div id="fPhone"></div></div>
+        <div id="deliveryBlock" hidden><h4 data-i18n="fDelivery"></h4><div id="fDelivery"></div></div>
+        <div><h4 data-i18n="fLic"></h4><div id="fLic"></div></div>
+      </div>
+      <div class="copy"><span data-i18n="copy"></span> <a class="adm" href="/admin">Admin</a></div>
+    </div>
+  </footer>
+</div>
+
+<button class="mbar" id="mbar" hidden><span id="mbarN">0 பொருட்கள்</span><span id="mbarT">₹0 • கூடையைப் பார் ›</span></button>
+
+<div class="modal" id="done">
+  <div class="box">
+    <div class="big">🎉</div>
+    <h2 data-i18n="done"></h2>
+    <div class="oid" id="doneId"></div>
+    <p data-i18n="thanks"></p>
+    <div class="order-next" id="doneNext">
+      <strong data-i18n="orderNextTitle"></strong>
+      <p data-i18n="orderNext"></p>
+      <p id="doneNote" hidden></p>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <a class="btn wa" id="waLink" target="_blank" rel="noopener" hidden>WhatsApp</a>
+      <button class="btn primary" id="doneClose" data-i18n="ok"></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="accountModal">
+  <div class="box account-box" id="accountBox"></div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/i18n.js"></script>
+<script src="/fireworks.js"></script>
+<script src="/shop.js"></script>
+</body>
+</html>

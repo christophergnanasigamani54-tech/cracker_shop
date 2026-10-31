@@ -1,0 +1,11 @@
+{
+  "name": "crackers-shop",
+  "version": "1.0.0",
+  "description": "பட்டாசு கடை மென்பொருள் - Firecrackers shop website and billing (Tamil, runs on localhost)",
+  "main": "server.js",
+  "private": true,
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

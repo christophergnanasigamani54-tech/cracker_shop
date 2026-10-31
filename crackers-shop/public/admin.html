@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin - பட்டாசு கடை</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎆</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+
+<div id="login" hidden>
+  <canvas id="sky"></canvas>
+  <form class="lbox" id="loginForm">
+    <div class="big">🎆</div>
+    <h1 data-i18n="loginTitle"></h1>
+    <p data-i18n="loginSub"></p>
+    <input type="password" id="pw" data-i18n-ph="pwPh" data-i18n-aria="pwPh" placeholder="" autocomplete="current-password" autofocus>
+    <div class="err" id="loginErr"></div>
+    <button class="btn pri" style="width:100%;padding:12px" type="submit" data-i18n="loginBtn"></button>
+    <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="ta">தமிழ்</button><button type="button" data-lang="en">EN</button></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <nav class="side">
+    <div class="brand"><span class="side-mark"><span id="sideLogoFallback">🎆</span><img id="sideLogo" alt="" hidden></span><div id="sideName">கடை</div></div>
+    <button class="tab on" data-t="dash" data-i18n="navDash"></button>
+    <button class="tab" data-t="pos" data-i18n="navPos"></button>
+    <button class="tab" data-t="orders"><span data-i18n="navOrders"></span> <span class="badge" id="newBadge" hidden></span></button>
+    <button class="tab" data-t="bills" data-i18n="navBills"></button>
+    <button class="tab" data-t="products" data-i18n="navProducts"></button>
+    <button class="tab" data-t="settings" data-i18n="navSettings"></button>
+    <div class="side-footer">
+      <div class="side-session"><span class="session-dot"></span><span data-i18n="sessionActive"></span></div>
+    <div class="lang side-lang" role="group" aria-label="Language"><button type="button" data-lang="ta">தமிழ்</button><button type="button" data-lang="en">EN</button></div>
+    <a href="/" target="_blank" data-i18n="navSite"></a>
+    <button class="lo" id="logout" data-i18n="navLogout"></button>
+    </div>
+  </nav>
+  <div class="workspace">
+    <header class="workspace-head">
+      <div><span class="workspace-eyebrow" data-i18n="workspaceLabel"></span><strong id="workspaceName">Shop owner</strong></div>
+      <div class="workspace-tools"><span class="session-status"><i></i><span data-i18n="sessionActive"></span></span></div>
+    </header>
+    <main id="view"></main>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<div id="receipt"></div>
+
+<script src="/common.js"></script>
+<script src="/i18n.js"></script>
+<script src="/admin-i18n.js"></script>
+<script src="/fireworks.js"></script>
+<script src="/admin.js"></script>
+</body>
+</html>
