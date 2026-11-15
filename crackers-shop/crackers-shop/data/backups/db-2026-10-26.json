@@ -1,0 +1,500 @@
+{
+  "settings": {
+    "shopName": "ஸ்ரீ முருகன் பட்டாசு கடை",
+    "shopNameEn": "Sri Murugan Crackers Shop",
+    "tagline": "தரமான பட்டாசுகள் • நேரடி தொழிற்சாலை விலை",
+    "taglineEn": "Quality crackers • Direct factory price",
+    "phone": "9999999999",
+    "whatsapp": "",
+    "address": "மெயின் ரோடு, சிவகாசி",
+    "addressEn": "Main Road, Sivakasi",
+    "licenseNo": "",
+    "gstNo": "",
+    "discount": 60,
+    "minOrder": 0,
+    "festivalTitle": "தீபாவளி சிறப்பு விற்பனை",
+    "festivalTitleEn": "Diwali Special Sale",
+    "adminHash": "86511396b1d6f164d5ff810c6d9be1a5:2d8f773ba0251f117879e1a0d26ee948f0101831a6544d61b7d085bdce754e2b",
+    "defaultPassword": true
+  },
+  "categories": [
+    {
+      "id": "sparkler",
+      "name": "மத்தாப்பு",
+      "nameEn": "Sparklers",
+      "emoji": "✨"
+    },
+    {
+      "id": "flowerpot",
+      "name": "புஸ்வாணம்",
+      "nameEn": "Flower Pots",
+      "emoji": "🌸"
+    },
+    {
+      "id": "chakkar",
+      "name": "சக்கரம்",
+      "nameEn": "Chakkars",
+      "emoji": "🌀"
+    },
+    {
+      "id": "rocket",
+      "name": "வானவெடி",
+      "nameEn": "Rockets & Aerial",
+      "emoji": "🚀"
+    },
+    {
+      "id": "garland",
+      "name": "சரவெடி",
+      "nameEn": "Garlands",
+      "emoji": "🧨"
+    },
+    {
+      "id": "sound",
+      "name": "ஒலி வெடி",
+      "nameEn": "Sound Crackers",
+      "emoji": "💥"
+    },
+    {
+      "id": "fancy",
+      "name": "பேன்சி வெடி",
+      "nameEn": "Fancy Crackers",
+      "emoji": "🎆"
+    },
+    {
+      "id": "kids",
+      "name": "சிறுவர் வெடி",
+      "nameEn": "Kids Special",
+      "emoji": "🧒"
+    },
+    {
+      "id": "gift",
+      "name": "கிஃப்ட் பாக்ஸ்",
+      "nameEn": "Gift Boxes",
+      "emoji": "🎁"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "கம்பி மத்தாப்பு (10 செ.மீ)",
+      "nameEn": "Sparklers 10cm",
+      "category": "sparkler",
+      "emoji": "✨",
+      "mrp": 60,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 199,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "கம்பி மத்தாப்பு (15 செ.மீ)",
+      "nameEn": "Sparklers 15cm",
+      "category": "sparkler",
+      "emoji": "✨",
+      "mrp": 110,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 180,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "கலர் மத்தாப்பு (30 செ.மீ)",
+      "nameEn": "Colour Sparklers 30cm",
+      "category": "sparkler",
+      "emoji": "🌈",
+      "mrp": 190,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 119,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 4,
+      "name": "ஜெயன்ட் மத்தாப்பு (50 செ.மீ)",
+      "nameEn": "Giant Sparklers 50cm",
+      "category": "sparkler",
+      "emoji": "🎇",
+      "mrp": 340,
+      "discount": null,
+      "unit": "பெட்டி (5)",
+      "stock": 80,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 5,
+      "name": "புஸ்வாணம் சிறியது",
+      "nameEn": "Flower Pot Small",
+      "category": "flowerpot",
+      "emoji": "🌸",
+      "mrp": 150,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 150,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 6,
+      "name": "புஸ்வாணம் பெரியது",
+      "nameEn": "Flower Pot Big",
+      "category": "flowerpot",
+      "emoji": "🌺",
+      "mrp": 260,
+      "discount": null,
+      "unit": "பெட்டி (5)",
+      "stock": 120,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 7,
+      "name": "அசோகா புஸ்வாணம்",
+      "nameEn": "Ashoka Flower Pot",
+      "category": "flowerpot",
+      "emoji": "🏵️",
+      "mrp": 420,
+      "discount": null,
+      "unit": "பெட்டி (5)",
+      "stock": 90,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 8,
+      "name": "கலர் கோட்டை",
+      "nameEn": "Colour Koti",
+      "category": "flowerpot",
+      "emoji": "🎨",
+      "mrp": 330,
+      "discount": null,
+      "unit": "பெட்டி (5)",
+      "stock": 70,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 9,
+      "name": "தரைச்சக்கரம் சிறியது",
+      "nameEn": "Ground Chakkar Small",
+      "category": "chakkar",
+      "emoji": "🌀",
+      "mrp": 140,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 160,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 10,
+      "name": "தரைச்சக்கரம் பெரியது",
+      "nameEn": "Ground Chakkar Big",
+      "category": "chakkar",
+      "emoji": "🌪️",
+      "mrp": 270,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 110,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 11,
+      "name": "விசில் சக்கரம்",
+      "nameEn": "Whistling Chakkar",
+      "category": "chakkar",
+      "emoji": "🎡",
+      "mrp": 210,
+      "discount": null,
+      "unit": "பெட்டி (5)",
+      "stock": 80,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 12,
+      "name": "வானவெடி (ராக்கெட்) சிறியது",
+      "nameEn": "Rocket Small",
+      "category": "rocket",
+      "emoji": "🚀",
+      "mrp": 180,
+      "discount": null,
+      "unit": "பெட்டி (5)",
+      "stock": 100,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 13,
+      "name": "வானவெடி (ராக்கெட்) பெரியது",
+      "nameEn": "Rocket Big",
+      "category": "rocket",
+      "emoji": "🚀",
+      "mrp": 360,
+      "discount": null,
+      "unit": "பெட்டி (3)",
+      "stock": 60,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 14,
+      "name": "3¼\" வண்ண வானவெடி",
+      "nameEn": "3¼\" Aerial Shot",
+      "category": "rocket",
+      "emoji": "🎆",
+      "mrp": 520,
+      "discount": null,
+      "unit": "பெட்டி (1)",
+      "stock": 40,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 15,
+      "name": "சரவெடி 1000 வாலா",
+      "nameEn": "Garland 1000 Wala",
+      "category": "garland",
+      "emoji": "🧨",
+      "mrp": 480,
+      "discount": null,
+      "unit": "ஒரு சரம்",
+      "stock": 60,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 16,
+      "name": "சரவெடி 2000 வாலா",
+      "nameEn": "Garland 2000 Wala",
+      "category": "garland",
+      "emoji": "🧨",
+      "mrp": 920,
+      "discount": null,
+      "unit": "ஒரு சரம்",
+      "stock": 40,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 17,
+      "name": "சரவெடி 5000 வாலா",
+      "nameEn": "Garland 5000 Wala",
+      "category": "garland",
+      "emoji": "🧨",
+      "mrp": 2300,
+      "discount": null,
+      "unit": "ஒரு சரம்",
+      "stock": 20,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 18,
+      "name": "லட்சுமி வெடி",
+      "nameEn": "Lakshmi Crackers",
+      "category": "sound",
+      "emoji": "💥",
+      "mrp": 90,
+      "discount": null,
+      "unit": "பாக்கெட் (10)",
+      "stock": 220,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 19,
+      "name": "ஓலை வெடி",
+      "nameEn": "Oolai Vedi",
+      "category": "sound",
+      "emoji": "💥",
+      "mrp": 70,
+      "discount": null,
+      "unit": "பாக்கெட் (20)",
+      "stock": 200,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 20,
+      "name": "குருவி வெடி",
+      "nameEn": "Kuruvi Vedi",
+      "category": "sound",
+      "emoji": "🐦",
+      "mrp": 60,
+      "discount": null,
+      "unit": "பாக்கெட் (20)",
+      "stock": 200,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 21,
+      "name": "அணுகுண்டு",
+      "nameEn": "Atom Bomb",
+      "category": "sound",
+      "emoji": "💣",
+      "mrp": 160,
+      "discount": null,
+      "unit": "பாக்கெட் (5)",
+      "stock": 100,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 22,
+      "name": "பட்டர்ஃபிளை (வண்ணத்துப்பூச்சி)",
+      "nameEn": "Butterfly Fancy",
+      "category": "fancy",
+      "emoji": "🦋",
+      "mrp": 250,
+      "discount": null,
+      "unit": "பெட்டி (5)",
+      "stock": 90,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 23,
+      "name": "பீகாக் (மயில்) பேன்சி",
+      "nameEn": "Peacock Fancy",
+      "category": "fancy",
+      "emoji": "🦚",
+      "mrp": 390,
+      "discount": null,
+      "unit": "பெட்டி (1)",
+      "stock": 70,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 24,
+      "name": "மேஜிக் பாப்",
+      "nameEn": "Magic Pop",
+      "category": "fancy",
+      "emoji": "🪄",
+      "mrp": 130,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 140,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 25,
+      "name": "ரோல் கேப்",
+      "nameEn": "Roll Cap",
+      "category": "kids",
+      "emoji": "🔫",
+      "mrp": 40,
+      "discount": null,
+      "unit": "பாக்கெட் (10)",
+      "stock": 250,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 26,
+      "name": "பாம்பு மாத்திரை",
+      "nameEn": "Snake Tablet",
+      "category": "kids",
+      "emoji": "🐍",
+      "mrp": 30,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 250,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 27,
+      "name": "பென்சில் மத்தாப்பு",
+      "nameEn": "Pencil Sparkler",
+      "category": "kids",
+      "emoji": "✏️",
+      "mrp": 50,
+      "discount": null,
+      "unit": "பெட்டி (10)",
+      "stock": 200,
+      "popular": false,
+      "active": true
+    },
+    {
+      "id": 28,
+      "name": "குடும்ப கிஃப்ட் பாக்ஸ் (சிறியது)",
+      "nameEn": "Family Gift Box Small",
+      "category": "gift",
+      "emoji": "🎁",
+      "mrp": 1500,
+      "discount": null,
+      "unit": "பெட்டி",
+      "stock": 30,
+      "popular": true,
+      "active": true
+    },
+    {
+      "id": 29,
+      "name": "தீபாவளி ஸ்பெஷல் கிஃப்ட் பாக்ஸ்",
+      "nameEn": "Diwali Special Gift Box",
+      "category": "gift",
+      "emoji": "🎁",
+      "mrp": 3000,
+      "discount": null,
+      "unit": "பெட்டி",
+      "stock": 20,
+      "popular": true,
+      "active": true
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-0001",
+      "createdAt": "2026-10-24T15:33:47.185Z",
+      "status": "new",
+      "customer": {
+        "name": "iuy87yi",
+        "phone": "1234567890",
+        "address": "tewrtesf"
+      },
+      "note": "",
+      "lines": [
+        {
+          "id": 1,
+          "name": "கம்பி மத்தாப்பு (10 செ.மீ)",
+          "nameEn": "Sparklers 10cm",
+          "unit": "பெட்டி (10)",
+          "mrp": 60,
+          "price": 30,
+          "qty": 1,
+          "amount": 30
+        },
+        {
+          "id": 3,
+          "name": "கலர் மத்தாப்பு (30 செ.மீ)",
+          "nameEn": "Colour Sparklers 30cm",
+          "unit": "பெட்டி (10)",
+          "mrp": 190,
+          "price": 95,
+          "qty": 1,
+          "amount": 95
+        }
+      ],
+      "mrpTotal": 250,
+      "total": 125
+    }
+  ],
+  "bills": [],
+  "counters": {
+    "product": 29,
+    "order": 1,
+    "bill": 0,
+    "customer": 0
+  },
+  "customers": []
+}

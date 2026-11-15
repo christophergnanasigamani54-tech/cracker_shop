@@ -41,3 +41,64 @@
   (நிறுத்த: Ctrl+C அல்லது stop.bat)
 
 ^C
+  🎆 பட்டாசு கடை சர்வர் தொடங்கியது
+  கடை இணையதளம் : http://localhost:5280/
+  Admin / பில்லிங்  : http://localhost:5280/admin
+  (நிறுத்த: Ctrl+C அல்லது stop.bat)
+
+^CCould not start the shop server: error: database "crackers_shop" does not exist
+    at C:\chris\crackers-shop (2)\crackers-shop\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async ensureSchema (C:\chris\crackers-shop (2)\crackers-shop\server.js:88:3)
+    at async initializeDatabase (C:\chris\crackers-shop (2)\crackers-shop\server.js:215:3)
+    at async startServer (C:\chris\crackers-shop (2)\crackers-shop\server.js:856:3) {
+  length: 99,
+  severity: 'FATAL',
+  code: '3D000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postinit.c',
+  line: '1034',
+  routine: 'InitPostgres'
+}
+PostgreSQL initialized and existing db.json imported.
+
+  🎆 பட்டாசு கடை சர்வர் தொடங்கியது
+  கடை இணையதளம் : http://localhost:5280/
+  Admin / பில்லிங்  : http://localhost:5280/admin
+  (நிறுத்த: Ctrl+C அல்லது stop.bat)
+
+
+  🎆 பட்டாசு கடை சர்வர் தொடங்கியது
+  கடை இணையதளம் : http://localhost:5280/
+  Admin / பில்லிங்  : http://localhost:5280/admin
+  (நிறுத்த: Ctrl+C அல்லது stop.bat)
+
+^C
+  🎆 பட்டாசு கடை சர்வர் தொடங்கியது
+  கடை இணையதளம் : http://localhost:5280/
+  Admin / பில்லிங்  : http://localhost:5280/admin
+  (நிறுத்த: Ctrl+C அல்லது stop.bat)
+
+^C
+  🎆 பட்டாசு கடை சர்வர் தொடங்கியது
+  கடை இணையதளம் : http://localhost:5280/
+  Admin / பில்லிங்  : http://localhost:5280/admin
+  (நிறுத்த: Ctrl+C அல்லது stop.bat)
+
+^C
+  🎆 பட்டாசு கடை சர்வர் தொடங்கியது
+  கடை இணையதளம் : http://localhost:5280/
+  Admin / பில்லிங்  : http://localhost:5280/admin
+  (நிறுத்த: Ctrl+C அல்லது stop.bat)
+
+^C

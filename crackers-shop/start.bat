@@ -4,6 +4,21 @@ cd /d "%~dp0"
 call config.bat
 title Crackers Shop - Start
 
+if not defined DATABASE_URL (
+  if not exist "data\database-url.txt" (
+    echo PostgreSQL is not configured. Run setup.bat first to create the connection file.
+    pause
+    exit /b 1
+  )
+  findstr /C:"YOUR_PASSWORD" "data\database-url.txt" >nul
+  if not errorlevel 1 (
+    echo Replace YOUR_PASSWORD in data\database-url.txt, save the file, and run setup.bat first.
+    start "" notepad.exe "%~dp0data\database-url.txt"
+    pause
+    exit /b 1
+  )
+)
+
 where node >nul 2>nul
 if errorlevel 1 (
   echo Node.js not found. Please run setup.bat first.
@@ -32,7 +47,7 @@ if %RUNNING%==1 (
 if not exist "data" mkdir "data"
 echo Starting Crackers Shop server on port %PORT% ...
 rem Run hidden in background; log goes to data\server.log
-start "CrackersShopServer" /min cmd /c "set PORT=%PORT%&& set HOST=%HOST%&& node server.js >> data\server.log 2>&1"
+start "CrackersShopServer" /min cmd /c "node backend\server.js >> data\server.log 2>&1"
 
 rem ---- wait until the server answers (max ~15 sec) ----
 set /a tries=0

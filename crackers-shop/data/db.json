@@ -101,7 +101,7 @@
       "mrp": 110,
       "discount": null,
       "unit": "பெட்டி (10)",
-      "stock": 180,
+      "stock": 179,
       "popular": false,
       "active": true
     },
@@ -114,7 +114,7 @@
       "mrp": 190,
       "discount": null,
       "unit": "பெட்டி (10)",
-      "stock": 119,
+      "stock": 117,
       "popular": true,
       "active": true
     },
@@ -459,6 +459,42 @@
   ],
   "orders": [
     {
+      "id": "ORD-0002",
+      "createdAt": "2026-11-02T06:46:52.647Z",
+      "status": "packed",
+      "customerId": 1,
+      "customer": {
+        "name": "chris",
+        "phone": "1234567890",
+        "address": "11/195 church street"
+      },
+      "note": "",
+      "lines": [
+        {
+          "id": 2,
+          "name": "கம்பி மத்தாப்பு (15 செ.மீ)",
+          "nameEn": "Sparklers 15cm",
+          "unit": "பெட்டி (10)",
+          "mrp": 110,
+          "price": 44,
+          "qty": 1,
+          "amount": 44
+        },
+        {
+          "id": 3,
+          "name": "கலர் மத்தாப்பு (30 செ.மீ)",
+          "nameEn": "Colour Sparklers 30cm",
+          "unit": "பெட்டி (10)",
+          "mrp": 190,
+          "price": 76,
+          "qty": 2,
+          "amount": 152
+        }
+      ],
+      "mrpTotal": 490,
+      "total": 196
+    },
+    {
       "id": "ORD-0001",
       "createdAt": "2026-10-24T15:33:47.185Z",
       "status": "confirmed",
@@ -523,7 +559,7 @@
   ],
   "counters": {
     "product": 29,
-    "order": 1,
+    "order": 2,
     "bill": 1,
     "customer": 2
   },

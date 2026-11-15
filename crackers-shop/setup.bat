@@ -42,20 +42,55 @@ pause
 exit /b 1
 
 :folders
-rem ---- 2. Create data folders ----
+if not defined DATABASE_URL (
+  if not exist "data\database-url.txt" (
+    copy "data\database-url.txt.example" "data\database-url.txt" >nul
+    if errorlevel 1 (
+      echo [X] Could not create data\database-url.txt.
+      pause
+      exit /b 1
+    )
+    echo.
+    echo [!] A private PostgreSQL connection file has been created.
+    echo     First create a database named crackers_shop in pgAdmin.
+    echo     Replace YOUR_PASSWORD in the file with the password you set during
+    echo     PostgreSQL installation, save it, then run setup.bat again.
+    start "" notepad.exe "%~dp0data\database-url.txt"
+    pause
+    exit /b 1
+  )
+  findstr /C:"YOUR_PASSWORD" "data\database-url.txt" >nul
+  if not errorlevel 1 (
+    echo [!] Replace YOUR_PASSWORD in data\database-url.txt, save the file, and run setup.bat again.
+    start "" notepad.exe "%~dp0data\database-url.txt"
+    pause
+    exit /b 1
+  )
+)
+
+rem ---- 2. Install Node.js dependencies ----
+echo Installing application dependencies...
+npm ci --omit=dev
+if errorlevel 1 (
+  echo [X] Could not install application dependencies.
+  pause
+  exit /b 1
+)
+
+rem ---- 3. Create data folders ----
 if not exist "data" mkdir "data"
 if not exist "data\backups" mkdir "data\backups"
 echo [OK] Data folders ready.
 
-rem ---- 3. Quick self-test ----
-node -e "require('./seed'); console.log('[OK] Application files are fine.')"
+rem ---- 4. Quick self-test ----
+node -e "require('./backend/models/seed'); console.log('[OK] Application files are fine.')"
 if errorlevel 1 (
   echo [X] Application files are missing or damaged.
   pause
   exit /b 1
 )
 
-rem ---- 4. Firewall note ----
+rem ---- 5. Firewall note ----
 echo.
 echo ==================================================
 echo   Setup complete!
