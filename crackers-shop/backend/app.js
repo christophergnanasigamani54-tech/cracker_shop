@@ -16,8 +16,8 @@ const { hashPassword, checkPassword } = require('./services/password-service');
 const { resolveStaticRoute } = require('./routes/static-routes');
 const { isWithinExportDates, orderCategories, calculateStockAdjustment } = require('./utils/data-utils');
 
-const PORT = Number(process.env.PORT) || 5280;
-const HOST = process.env.HOST || '127.0.0.1'; // localhost only. Use HOST=0.0.0.0 to allow shop LAN.
+const PORT = Number(process.env.PORT) || 5000;
+const HOST = process.env.HOST || '0.0.0.0'; // localhost only. Use HOST=0.0.0.0 to allow shop LAN.
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(PROJECT_ROOT, 'frontend');
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(PROJECT_ROOT, 'data'));
