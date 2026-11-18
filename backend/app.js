@@ -15,6 +15,7 @@ const HttpError = require('./middleware/http-error');
 const { hashPassword, checkPassword } = require('./services/password-service');
 const { resolveStaticRoute } = require('./routes/static-routes');
 const { isWithinExportDates, orderCategories, calculateStockAdjustment } = require('./utils/data-utils');
+const { backupImages } = require('./utils/image-backup');
 
 const PORT = Number(process.env.PORT) || 5280;
 const HOST = process.env.HOST || '127.0.0.1'; // localhost only. Use HOST=0.0.0.0 to allow shop LAN.
@@ -291,13 +292,8 @@ async function initializeDatabase() {
 }
 
 function productImageBackup() {
-  const images = [...new Set([...db.products.map((p) => p.image), db.settings.logo].filter(Boolean))];
-  return images.map((image) => {
-    const isShopLogo = /^\/shop-images\/[a-f0-9]{32}\.(?:jpg|png|webp)$/.test(image);
-    const directory = isShopLogo ? SHOP_IMAGE_DIR : PRODUCT_IMAGE_DIR;
-    const filename = path.basename(image);
-    return { path: image, data: fs.readFileSync(path.join(directory, filename)).toString('base64') };
-  });
+  const images = [...db.products.map((p) => p.image), db.settings.logo];
+  return backupImages(images, PRODUCT_IMAGE_DIR, SHOP_IMAGE_DIR);
 }
 async function dailyBackup() {
   const d = new Date();
