@@ -447,6 +447,7 @@ const SESSION_COOKIE = { admin: 'adminSid', customer: 'customerSid' };
 const passwordResetRequests = new Map();
 const PASSWORD_RESET_MS = 30 * 60 * 1000;
 const customerRegistrationOtps = new Map();
+const customerProfileChangeOtps = new Map();
 const customerOtpRequestLimits = new Map();
 const customerOtpHashKey = crypto.randomBytes(32);
 const CUSTOMER_OTP_TTL_MS = 10 * 60 * 1000;
@@ -535,11 +536,51 @@ async function sendCustomerRegistrationOtp(email, pending, lang) {
   }
 }
 
+async function sendCustomerProfileChangeOtp(customerId, email, profile, lang) {
+  const mailer = customerOtpMailer(lang);
+  const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
+  const pending = {
+    email,
+    profile: { ...profile },
+    codeHash: customerOtpHash(email, code),
+    expiresAt: Date.now() + CUSTOMER_OTP_TTL_MS,
+    resendAfter: Date.now() + CUSTOMER_OTP_RESEND_MS,
+    attempts: 0,
+  };
+  const previous = customerProfileChangeOtps.get(customerId);
+  customerProfileChangeOtps.set(customerId, pending);
+  try {
+    await mailer.transporter.sendMail({
+      from: mailer.from,
+      to: email,
+      subject: msg(lang, 'சுயவிவர மாற்றங்களை உறுதிப்படுத்தவும்', 'Confirm your profile changes'),
+      text: msg(lang,
+        'உங்கள் சுயவிவர மாற்றங்களுக்கான சரிபார்ப்பு குறியீடு: ' + code + '\nஇந்தக் குறியீடு 10 நிமிடங்களில் காலாவதியாகும். நீங்கள் இந்த மாற்றங்களைக் கோரவில்லை என்றால், அவற்றைப் புறக்கணிக்கவும்.',
+        'Your profile change verification code is: ' + code + '\nThis code expires in 10 minutes. If you did not request these changes, ignore this email.'),
+    });
+  } catch (error) {
+    if (previous) customerProfileChangeOtps.set(customerId, previous);
+    else customerProfileChangeOtps.delete(customerId);
+    console.error('Could not send customer profile change verification:', error);
+    throw new HttpError(503, msg(lang, 'சரிபார்ப்பு மின்னஞ்சலை அனுப்ப முடியவில்லை. பின்னர் மீண்டும் முயற்சிக்கவும்.', 'Could not send the verification email. Please try again later.'));
+  }
+}
+
 function removeExpiredCustomerOtps() {
   const now = Date.now();
   for (const [email, pending] of customerRegistrationOtps) {
     if (pending.expiresAt <= now) customerRegistrationOtps.delete(email);
   }
+  for (const [customerId, pending] of customerProfileChangeOtps) {
+    if (pending.expiresAt <= now) customerProfileChangeOtps.delete(customerId);
+  }
+}
+
+function emailChangePendingForAnother(email, customerId) {
+  for (const [id, pending] of customerProfileChangeOtps) {
+    if (id !== customerId && pending.email === email) return true;
+  }
+  return false;
 }
 
 function allowPasswordResetRequest(ip) {
@@ -921,10 +962,11 @@ async function api(req, res, pathname, query) {
     if (password !== passwordConfirm) throw new HttpError(400, msg(lang, 'கடவுச்சொற்கள் பொருந்தவில்லை', 'Passwords do not match'));
     if (!email) throw new HttpError(400, msg(lang, 'மின்னஞ்சலை உள்ளிடவும்', 'Please enter your email address'));
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(400, msg(lang, 'சரியான மின்னஞ்சலை உள்ளிடவும்', 'Enter a valid email address'));
-    if (db.customers.some((customer) => String(customer.email || '').toLowerCase() === email)) {
+    removeExpiredCustomerOtps();
+    if (db.customers.some((customer) => String(customer.email || '').toLowerCase() === email) ||
+        Array.from(customerProfileChangeOtps.values()).some((pendingEmail) => pendingEmail.email === email)) {
       throw new HttpError(409, msg(lang, 'இந்த மின்னஞ்சல் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது', 'This email is already registered'));
     }
-    removeExpiredCustomerOtps();
     if (customerRegistrationOtps.has(email)) {
       throw new HttpError(409, msg(lang, 'சரிபார்ப்பு குறியீடு ஏற்கனவே அனுப்பப்பட்டுள்ளது. உங்கள் மின்னஞ்சலைப் பார்க்கவும்.', 'A verification code has already been sent. Check your email.'));
     }
@@ -974,7 +1016,8 @@ async function api(req, res, pathname, query) {
       }
       throw new HttpError(400, msg(lang, 'சரிபார்ப்பு குறியீடு தவறு', 'The verification code is incorrect'));
     }
-    if (db.customers.some((customer) => String(customer.email || '').toLowerCase() === email)) {
+    if (db.customers.some((customer) => String(customer.email || '').toLowerCase() === email) ||
+        Array.from(customerProfileChangeOtps.values()).some((pendingEmail) => pendingEmail.email === email)) {
       customerRegistrationOtps.delete(email);
       throw new HttpError(409, msg(lang, 'இந்த மின்னஞ்சல் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது', 'This email is already registered'));
     }
@@ -1013,7 +1056,137 @@ async function api(req, res, pathname, query) {
   if (method === 'GET' && pathname === '/api/customer/me') {
     const session = sessionFor(req, 'customer');
     const customer = session && db.customers.find((c) => c.id === session.customerId);
-    return send(res, 200, customer ? { loggedIn: true, customer: customerView(customer) } : { loggedIn: false });
+    removeExpiredCustomerOtps();
+    const pending = customer && customerProfileChangeOtps.get(customer.id);
+    return send(res, 200, customer ? {
+      loggedIn: true,
+      customer: customerView(customer),
+      pendingEmail: pending?.email || '',
+      pendingProfile: pending ? { ...pending.profile, email: pending.email } : null,
+    } : { loggedIn: false });
+  }
+  if (method === 'PUT' && pathname === '/api/customer/me') {
+    const lang = langOf(req);
+    const session = sessionFor(req, 'customer');
+    if (!session) throw new HttpError(401, msg(lang, 'வாடிக்கையாளர் கணக்கில் உள்நுழைய வேண்டும்', 'Please log in to your customer account'));
+    const customer = db.customers.find((item) => item.id === session.customerId);
+    if (!customer) throw new HttpError(401, msg(lang, 'வாடிக்கையாளர் கணக்கில் உள்நுழைய வேண்டும்', 'Please log in to your customer account'));
+    const b = await readBody(req);
+    const name = str(b.name, 60).trim();
+    const email = str(b.email, 254).trim().toLowerCase();
+    const phone = normalizePhone(b.phone);
+    const address = str(b.address, 300).trim();
+    if (name.length < 2) throw new HttpError(400, msg(lang, 'பெயரை உள்ளிடவும்', 'Please enter your name'));
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(400, msg(lang, 'சரியான மின்னஞ்சலை உள்ளிடவும்', 'Enter a valid email address'));
+    if (phone && (phone.length < 10 || phone.length > 15)) {
+      throw new HttpError(400, msg(lang, 'சரியான மொபைல் எண்ணை உள்ளிடவும்', 'Please enter a valid phone number'));
+    }
+    if (address && address.length < 5) throw new HttpError(400, msg(lang, 'முகவரியை உள்ளிடவும்', 'Please enter a valid address'));
+    if (phone && db.customers.some((item) => item.id !== customer.id && item.phone === phone)) {
+      throw new HttpError(409, msg(lang, 'இந்த தொலைபேசி எண் ஏற்கனவே மற்றொரு கணக்கில் பயன்படுத்தப்படுகிறது', 'This phone number is already used by another account'));
+    }
+
+    removeExpiredCustomerOtps();
+    const currentEmail = String(customer.email || '').toLowerCase();
+    const profile = { name, phone, address };
+    const changed = name !== String(customer.name || '').trim() ||
+      email !== currentEmail ||
+      phone !== normalizePhone(customer.phone) ||
+      address !== String(customer.address || '').trim();
+    if (!changed) {
+      customerProfileChangeOtps.delete(customer.id);
+      return send(res, 200, { ok: true, customer: customerView(customer), verificationRequired: false, pendingEmail: '', pendingProfile: null });
+    }
+
+    if (email !== currentEmail &&
+        (db.customers.some((item) => item.id !== customer.id && String(item.email || '').toLowerCase() === email) ||
+         customerRegistrationOtps.has(email) || emailChangePendingForAnother(email, customer.id))) {
+      throw new HttpError(409, msg(lang, 'இந்த மின்னஞ்சல் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது', 'This email is already in use'));
+    }
+
+    let pending = customerProfileChangeOtps.get(customer.id);
+    const samePendingChange = pending && pending.email === email && pending.profile &&
+      pending.profile.name === profile.name &&
+      pending.profile.phone === profile.phone &&
+      pending.profile.address === profile.address;
+    if (!samePendingChange) {
+      if (!allowCustomerOtpRequest(req.socket.remoteAddress || 'unknown')) {
+        throw new HttpError(429, msg(lang, 'சிறிது நேரம் கழித்து முயற்சிக்கவும்', 'Too many verification requests. Please try again later'));
+      }
+      await sendCustomerProfileChangeOtp(customer.id, email, profile, lang);
+      pending = customerProfileChangeOtps.get(customer.id);
+    }
+    return send(res, 200, {
+      ok: true,
+      customer: customerView(customer),
+      verificationRequired: true,
+      pendingEmail: pending.email,
+      pendingProfile: { ...pending.profile, email: pending.email },
+    });
+  }
+  if (method === 'POST' && pathname === '/api/customer/me/email/verify') {
+    const lang = langOf(req);
+    const session = sessionFor(req, 'customer');
+    if (!session) throw new HttpError(401, msg(lang, 'வாடிக்கையாளர் கணக்கில் உள்நுழைய வேண்டும்', 'Please log in to your customer account'));
+    const customer = db.customers.find((item) => item.id === session.customerId);
+    const pending = customerProfileChangeOtps.get(session.customerId);
+    if (!customer) throw new HttpError(401, msg(lang, 'வாடிக்கையாளர் கணக்கில் உள்நுழைய வேண்டும்', 'Please log in to your customer account'));
+    if (!pending || !pending.profile || pending.expiresAt <= Date.now()) {
+      customerProfileChangeOtps.delete(session.customerId);
+      throw new HttpError(400, msg(lang, 'சரிபார்ப்பு குறியீடு காலாவதியானது. மீண்டும் முயற்சிக்கவும்.', 'The verification code expired. Please request a new one.'));
+    }
+    const b = await readBody(req);
+    const code = typeof b.code === 'string' ? b.code : '';
+    const actualHash = customerOtpHash(pending.email, code);
+    const codeValid = /^\d{6}$/.test(code) && crypto.timingSafeEqual(pending.codeHash, actualHash);
+    if (!codeValid) {
+      pending.attempts += 1;
+      if (pending.attempts >= CUSTOMER_OTP_MAX_ATTEMPTS) {
+        customerProfileChangeOtps.delete(session.customerId);
+        throw new HttpError(429, msg(lang, 'பல தவறான குறியீடுகள். சுயவிவர மாற்றங்களை மீண்டும் தொடங்கவும்.', 'Too many incorrect codes. Please start the profile change again.'));
+      }
+      throw new HttpError(400, msg(lang, 'சரிபார்ப்பு குறியீடு தவறு', 'The verification code is incorrect'));
+    }
+    if (pending.email !== String(customer.email || '').toLowerCase() &&
+        db.customers.some((item) => item.id !== customer.id && String(item.email || '').toLowerCase() === pending.email)) {
+      customerProfileChangeOtps.delete(session.customerId);
+      throw new HttpError(409, msg(lang, 'இந்த மின்னஞ்சல் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது', 'This email is already in use'));
+    }
+    if (pending.profile.phone && db.customers.some((item) => item.id !== customer.id && item.phone === pending.profile.phone)) {
+      customerProfileChangeOtps.delete(session.customerId);
+      throw new HttpError(409, msg(lang, 'இந்த தொலைபேசி எண் ஏற்கனவே மற்றொரு கணக்கில் பயன்படுத்தப்படுகிறது', 'This phone number is already used by another account'));
+    }
+    const emailChanged = pending.email !== String(customer.email || '').toLowerCase();
+    customer.name = pending.profile.name;
+    customer.phone = pending.profile.phone;
+    customer.address = pending.profile.address;
+    customer.email = pending.email;
+    if (emailChanged) customer.emailVerifiedAt = new Date().toISOString();
+    customerProfileChangeOtps.delete(session.customerId);
+    await saveDb();
+    return send(res, 200, { ok: true, customer: customerView(customer), pendingEmail: '' });
+  }
+  if (method === 'POST' && pathname === '/api/customer/me/email/resend') {
+    const lang = langOf(req);
+    const session = sessionFor(req, 'customer');
+    if (!session) throw new HttpError(401, msg(lang, 'வாடிக்கையாளர் கணக்கில் உள்நுழைய வேண்டும்', 'Please log in to your customer account'));
+    removeExpiredCustomerOtps();
+    const pending = customerProfileChangeOtps.get(session.customerId);
+    if (!pending) throw new HttpError(400, msg(lang, 'சரிபார்ப்பு குறியீடு காலாவதியானது. மீண்டும் முயற்சிக்கவும்.', 'The verification code expired. Please request a new one.'));
+    if (pending.resendAfter > Date.now()) {
+      throw new HttpError(429, msg(lang, 'மீண்டும் குறியீடு கோருவதற்கு முன் சிறிது நேரம் காத்திருக்கவும்.', 'Please wait before requesting another code.'));
+    }
+    if (!allowCustomerOtpRequest(req.socket.remoteAddress || 'unknown')) {
+      throw new HttpError(429, msg(lang, 'சிறிது நேரம் கழித்து முயற்சிக்கவும்', 'Too many verification requests. Please try again later'));
+    }
+    await sendCustomerProfileChangeOtp(session.customerId, pending.email, pending.profile, lang);
+    return send(res, 200, { ok: true, otpSent: true });
+  }
+  if (method === 'POST' && pathname === '/api/customer/me/email/cancel') {
+    const session = sessionFor(req, 'customer');
+    if (!session) throw new HttpError(401, 'வாடிக்கையாளர் கணக்கில் உள்நுழைய வேண்டும்');
+    customerProfileChangeOtps.delete(session.customerId);
+    return send(res, 200, { ok: true });
   }
   if (method === 'GET' && pathname === '/api/customer/orders') {
     const session = sessionFor(req, 'customer');
@@ -1351,6 +1524,11 @@ server.on('error', (e) => {
 
 async function startServer() {
   if (!DATABASE_URL) throw new Error('PostgreSQL connection is not configured. Set DATABASE_URL or create data/database-url.txt.');
+  const smtpHost = String(process.env.SMTP_HOST || '').trim();
+  const smtpFrom = String(process.env.SMTP_FROM || '').trim();
+  if (!smtpHost || !smtpFrom) {
+    console.warn('Email verification is not configured. Set SMTP_HOST and SMTP_FROM (and, when required, SMTP_USER and SMTP_PASS).');
+  }
   await initializeDatabase();
   dailyBackup().catch((error) => console.error('Could not create daily backup:', error));
   setInterval(() => dailyBackup().catch((error) => console.error('Could not create daily backup:', error)), 6 * 3600 * 1000).unref();

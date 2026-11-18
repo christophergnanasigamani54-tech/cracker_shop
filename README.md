@@ -66,7 +66,8 @@ SERVER DEPLOYMENT (LINUX OR MANAGED HOST)
   Set SMTP_USER and SMTP_PASS if your relay requires authentication, and SMTP_SECURE=true for
   implicit TLS (usually port 465); port 587 defaults to STARTTLS. Admin password recovery
   also requires PUBLIC_BASE_URL and a recovery email saved in Admin > Settings. Do not
-  commit SMTP credentials.
+  commit SMTP credentials. See `.env.example` for the variable names; it is a reference
+  template only and is not loaded automatically.
 
 TESTS
   npm test runs unit tests and skips the PostgreSQL integration test unless
