@@ -69,6 +69,13 @@ SERVER DEPLOYMENT (LINUX OR MANAGED HOST)
   commit SMTP credentials. See `.env.example` for the variable names; it is a reference
   template only and is not loaded automatically.
 
+  For Railway, add the SMTP variables under the deployed service's Variables, then redeploy.
+  For Gmail, use SMTP_HOST=smtp.gmail.com, SMTP_PORT=587, SMTP_SECURE=false,
+  SMTP_USER=your Gmail address, SMTP_PASS=a Google App Password (not your Gmail login
+  password), and SMTP_FROM=the same Gmail address. Google App Passwords require 2-Step
+  Verification. After deployment, submit a new registration and check spam if the code
+  does not arrive. The registration form switches to OTP only after the email send succeeds.
+
 TESTS
   npm test runs unit tests and skips the PostgreSQL integration test unless
   TEST_DATABASE_URL points to a dedicated test database whose name contains "test".
