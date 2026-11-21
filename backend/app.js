@@ -8,10 +8,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const ExcelJS = require('exceljs');
-const nodemailer = require('nodemailer');
 const { pool, DATABASE_URL } = require('./config/database');
 const seed = require('./models/seed');
 const HttpError = require('./middleware/http-error');
+const { createEmailSender } = require('./services/email-service');
 const { hashPassword, checkPassword } = require('./services/password-service');
 const { resolveStaticRoute } = require('./routes/static-routes');
 const { isWithinExportDates, orderCategories, calculateStockAdjustment } = require('./utils/data-utils');
@@ -453,23 +453,26 @@ const CUSTOMER_OTP_RATE_WINDOW_MS = 15 * 60 * 1000;
 
 function createEmailMailer(errorMessage) {
   const host = String(process.env.SMTP_HOST || '').trim();
-  const from = String(process.env.SMTP_FROM || '').trim();
+  const from = String(process.env.EMAIL_FROM || process.env.SMTP_FROM || '').trim();
   const username = String(process.env.SMTP_USER || '').trim();
   const password = String(process.env.SMTP_PASS || '');
+  const resendApiKey = String(process.env.RESEND_API_KEY || '').trim();
   const port = Number(process.env.SMTP_PORT || 587);
   const secureSetting = String(process.env.SMTP_SECURE || '').toLowerCase();
-  if (!host || !from || !Number.isInteger(port) || port < 1 || port > 65535 ||
-      (!!username !== !!password) || (secureSetting && !['true', 'false'].includes(secureSetting))) {
+  if (!from || (!resendApiKey && !host) ||
+      (!resendApiKey && (!Number.isInteger(port) || port < 1 || port > 65535 ||
+        (!!username !== !!password) || (secureSetting && !['true', 'false'].includes(secureSetting))))) {
     throw new HttpError(503, errorMessage);
   }
-  return {
+  return createEmailSender({
     from,
-    transporter: nodemailer.createTransport({
+    resendApiKey,
+    smtp: {
       host, port,
       secure: secureSetting ? secureSetting === 'true' : port === 465,
-      ...(username ? { auth: { user: username, pass: password } } : {}),
-    }),
-  };
+      ...(username ? { user: username, pass: password } : {}),
+    },
+  });
 }
 
 function passwordResetMailer(lang = 'ta') {
@@ -517,8 +520,7 @@ async function sendCustomerRegistrationOtp(email, pending, lang) {
   pending.attempts = 0;
   customerRegistrationOtps.set(email, pending);
   try {
-    await mailer.transporter.sendMail({
-      from: mailer.from,
+    await mailer.sendMail({
       to: email,
       subject: msg(lang, 'பட்டாசு கடை கணக்கு மின்னஞ்சல் சரிபார்ப்பு', 'Verify your Crackers Shop email'),
       text: msg(lang,
@@ -546,8 +548,7 @@ async function sendCustomerProfileChangeOtp(customerId, email, profile, lang) {
   const previous = customerProfileChangeOtps.get(customerId);
   customerProfileChangeOtps.set(customerId, pending);
   try {
-    await mailer.transporter.sendMail({
-      from: mailer.from,
+    await mailer.sendMail({
       to: email,
       subject: msg(lang, 'சுயவிவர மாற்றங்களை உறுதிப்படுத்தவும்', 'Confirm your profile changes'),
       text: msg(lang,
@@ -1228,8 +1229,7 @@ async function api(req, res, pathname, query) {
       await pool.query('INSERT INTO admin_password_resets (token_hash, expires_at) VALUES ($1, $2)',
         [tokenHash, new Date(expiresAt)]);
       try {
-        await mailer.transporter.sendMail({
-          from: mailer.from,
+        await mailer.sendMail({
           to: email,
           subject: 'Crackers Shop admin password reset',
           text: 'Use this link to reset the shop admin password. It expires in 30 minutes:\n\n' +
@@ -1520,10 +1520,11 @@ server.on('error', (e) => {
 
 async function startServer() {
   if (!DATABASE_URL) throw new Error('PostgreSQL connection is not configured. Set DATABASE_URL or create data/database-url.txt.');
+  const emailFrom = String(process.env.EMAIL_FROM || process.env.SMTP_FROM || '').trim();
+  const resendApiKey = String(process.env.RESEND_API_KEY || '').trim();
   const smtpHost = String(process.env.SMTP_HOST || '').trim();
-  const smtpFrom = String(process.env.SMTP_FROM || '').trim();
-  if (!smtpHost || !smtpFrom) {
-    console.warn('Email verification is not configured. Set SMTP_HOST and SMTP_FROM (and, when required, SMTP_USER and SMTP_PASS).');
+  if (!emailFrom || (!resendApiKey && !smtpHost)) {
+    console.warn('Email is not configured. Set RESEND_API_KEY and EMAIL_FROM, or SMTP_HOST and SMTP_FROM (plus SMTP_USER and SMTP_PASS when required).');
   }
   await initializeDatabase();
   dailyBackup().catch((error) => console.error('Could not create daily backup:', error));

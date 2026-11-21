@@ -312,7 +312,8 @@ Important environment variables:
 | `DATABASE_URL` | PostgreSQL connection string |
 | `PORT` | Port supplied by the hosting platform; defaults to `5280` |
 | `HOST` | Bind address; set to `0.0.0.0` if required by the host |
-| `SMTP_HOST`, `SMTP_FROM` | Required to send customer verification email |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Preferred hosted email provider; uses Resend over HTTPS |
+| `SMTP_HOST`, `SMTP_FROM` | Optional SMTP email configuration |
 | `SMTP_PORT`, `SMTP_SECURE` | SMTP connection settings; port defaults to `587` |
 | `SMTP_USER`, `SMTP_PASS` | Optional SMTP authentication pair |
 | `PUBLIC_BASE_URL` | Required for admin password recovery links |
