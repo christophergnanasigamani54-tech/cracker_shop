@@ -2,7 +2,47 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const nodemailer = require('nodemailer');
 const { createEmailSender } = require('../services/email-service');
+
+test('configured SMTP sender takes precedence over a stale Resend API key', async (t) => {
+  const originalCreateTransport = nodemailer.createTransport;
+  let transportConfig;
+  let sentMessage;
+  nodemailer.createTransport = (config) => {
+    transportConfig = config;
+    return {
+      sendMail: async (message) => { sentMessage = message; },
+    };
+  };
+  t.after(() => { nodemailer.createTransport = originalCreateTransport; });
+
+  const mailer = createEmailSender({
+    from: 'shop@gmail.com',
+    resendApiKey: 'stale-resend-key',
+    smtp: {
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      user: 'shop@gmail.com',
+      pass: 'app-password',
+    },
+  });
+  await mailer.sendMail({ to: 'customer@example.com', subject: 'Verify', text: 'Code: 123456' });
+
+  assert.deepEqual(transportConfig, {
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: { user: 'shop@gmail.com', pass: 'app-password' },
+  });
+  assert.deepEqual(sentMessage, {
+    from: 'shop@gmail.com',
+    to: 'customer@example.com',
+    subject: 'Verify',
+    text: 'Code: 123456',
+  });
+});
 
 test('Resend sender sends email over HTTPS using configured sender and API key', async (t) => {
   const originalFetch = global.fetch;

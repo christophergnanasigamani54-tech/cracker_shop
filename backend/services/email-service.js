@@ -2,7 +2,20 @@
 
 const nodemailer = require('nodemailer');
 
-function createEmailSender({ from, resendApiKey, smtp }) {
+function createEmailSender({ from, resendApiKey, smtp = {} }) {
+  if (smtp.host) {
+    const transporter = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      ...(smtp.user ? { auth: { user: smtp.user, pass: smtp.pass } } : {}),
+    });
+    return {
+      from,
+      sendMail: (message) => transporter.sendMail({ ...message, from: message.from || from }),
+    };
+  }
+
   if (resendApiKey) {
     return {
       from,
@@ -29,16 +42,7 @@ function createEmailSender({ from, resendApiKey, smtp }) {
     };
   }
 
-  const transporter = nodemailer.createTransport({
-    host: smtp.host,
-    port: smtp.port,
-    secure: smtp.secure,
-    ...(smtp.user ? { auth: { user: smtp.user, pass: smtp.pass } } : {}),
-  });
-  return {
-    from,
-    sendMail: (message) => transporter.sendMail({ ...message, from: message.from || from }),
-  };
+  throw new Error('Email sender is not configured.');
 }
 
 module.exports = { createEmailSender };

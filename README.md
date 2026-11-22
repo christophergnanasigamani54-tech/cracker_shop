@@ -62,22 +62,20 @@ SERVER DEPLOYMENT (LINUX OR MANAGED HOST)
   when the host requires binding to all interfaces. Keep the data folder writable and
   persistent for product images, shop logos, and local backups. PostgreSQL stores the
   shop records. Never commit database credentials or production customer data.
-  Customer email verification supports Resend via RESEND_API_KEY and EMAIL_FROM (recommended
-  for hosted deployments), or SMTP_HOST and SMTP_FROM; SMTP_PORT defaults to 587. Resend uses
-  HTTPS, so it avoids SMTP network restrictions. Set SMTP_USER and SMTP_PASS if your SMTP relay
-  requires authentication, and SMTP_SECURE=true for implicit TLS (usually port 465); port 587
-  defaults to STARTTLS. Admin password recovery
+  Customer email verification can use Gmail SMTP with SMTP_HOST=smtp.gmail.com,
+  SMTP_PORT=587, SMTP_SECURE=false, SMTP_USER, SMTP_PASS (a Google App Password), and
+  SMTP_FROM set to the same Gmail address. EMAIL_FROM, if set, should also match. SMTP is
+  selected whenever SMTP_HOST is set. Alternatively, Resend can be used via RESEND_API_KEY
+  and EMAIL_FROM when SMTP_HOST is unset. Admin password recovery
   also requires PUBLIC_BASE_URL and a recovery email saved in Admin > Settings. Do not
   commit SMTP credentials. See `.env.example` for the variable names; it is a reference
   template only and is not loaded automatically.
 
-  For Railway, configure RESEND_API_KEY and EMAIL_FROM under the deployed service's Variables,
-  using a sender address verified with Resend, then redeploy. The API key takes precedence over
-  SMTP settings. Alternatively, Gmail SMTP uses SMTP_HOST=smtp.gmail.com, SMTP_PORT=587,
-  SMTP_SECURE=false, SMTP_USER=your Gmail address, SMTP_PASS=a Google App Password (not your
-  Gmail login password), and SMTP_FROM=the same Gmail address. Google App Passwords require
-  2-Step Verification. After deployment, submit a new registration and check spam if the code
-  does not arrive. The registration form switches to OTP only after the email send succeeds.
+  For Railway with Gmail, set the SMTP variables above in the deployed service's Variables.
+  Google App Passwords require 2-Step Verification. With SMTP_HOST set, Gmail SMTP is used
+  even if a RESEND_API_KEY is also present. Redeploy after changing variables. Submit a new
+  registration and check spam if the code does not arrive. The form switches to OTP only after
+  the email send succeeds.
 
 TESTS
   npm test runs unit tests and skips the PostgreSQL integration test unless

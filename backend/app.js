@@ -460,7 +460,7 @@ function createEmailMailer(errorMessage) {
   const port = Number(process.env.SMTP_PORT || 587);
   const secureSetting = String(process.env.SMTP_SECURE || '').toLowerCase();
   if (!from || (!resendApiKey && !host) ||
-      (!resendApiKey && (!Number.isInteger(port) || port < 1 || port > 65535 ||
+      (host && (!Number.isInteger(port) || port < 1 || port > 65535 ||
         (!!username !== !!password) || (secureSetting && !['true', 'false'].includes(secureSetting))))) {
     throw new HttpError(503, errorMessage);
   }
