@@ -18,9 +18,13 @@
     <div class="big">🎆</div>
     <h1 data-i18n="loginTitle"></h1>
     <p data-i18n="loginSub"></p>
+    <p class="settings-hint" data-i18n="loginHint"></p>
     <form id="loginForm">
+      <label for="loginEmail" data-i18n="loginEmail"></label>
+      <input id="loginEmail" name="email" type="email" maxlength="254" autocomplete="username" required>
+      <label for="pw" data-i18n="pwLabel"></label>
       <div class="password-field">
-        <input type="password" id="pw" data-i18n-ph="pwPh" data-i18n-aria="pwPh" placeholder="" autocomplete="current-password" autofocus>
+        <input type="password" id="pw" data-i18n-ph="pwPh" data-i18n-aria="pwPh" placeholder="" autocomplete="current-password" required>
         <button class="password-toggle" type="button" data-password-toggle data-i18n-aria="showPassword" aria-pressed="false"></button>
       </div>
       <div class="err" id="loginErr" role="alert"></div>

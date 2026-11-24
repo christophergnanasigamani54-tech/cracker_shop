@@ -216,6 +216,14 @@ tr:hover td { background: #fbf9fd; }
 .btn.pri { color: #fff; background: linear-gradient(135deg, #8867b0, #624486); }
 .btn.pri:hover { background: linear-gradient(135deg, #76569f, #553878); }
 .btn.gh { color: var(--brand-primary-deep); background: #f0ebf6; }
+.qty-stepper .btn.gh:hover:not(:disabled), #stockCancel:hover:not(:disabled) { color: var(--brand-primary-deep); background: #e5daf0; filter: none; }
+.qty-stepper .btn.gh:active:not(:disabled), #stockCancel:active:not(:disabled) {
+  color: #fff;
+  background: var(--brand-primary);
+  box-shadow: inset 0 2px 5px rgba(48, 30, 70, 0.28);
+  transform: translateY(1px);
+}
+.qty-stepper .btn.gh:focus-visible, #stockCancel:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
 .btn.grn { color: #fff; background: var(--green); }
 .btn.red { color: #fff; background: var(--red); }
 input.in, select.in, textarea.in { color: var(--brand-text); background: #fff; border-color: var(--brand-border); }

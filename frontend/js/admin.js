@@ -32,14 +32,18 @@
       $('#loginForm').hidden = false;
       $('#forgotPasswordForm').hidden = true;
       $('#resetPasswordForm').hidden = true;
-      $('#pw').focus();
+      $('#loginEmail').focus();
     }
     if (!fwStarted) { Fireworks.start($('#sky'), { intensity: 1.2 }); fwStarted = true; }
   }
   $('#loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('#loginErr').textContent = '';
-    try { await api('/api/login', 'POST', { password: $('#pw').value }); $('#pw').value = ''; await boot(); }
+    try {
+      await api('/api/login', 'POST', { email: $('#loginEmail').value.trim(), password: $('#pw').value });
+      $('#pw').value = '';
+      await boot();
+    }
     catch (err) { $('#loginErr').textContent = err.message; }
   });
   $('#forgotPasswordLink').onclick = () => {
@@ -221,7 +225,7 @@
       '<div class="row" style="margin-bottom:10px"><input class="in" id="pq" placeholder="' + esc(t('posSearch')) + '" style="flex:1;min-width:160px" value="' + esc(posQ) + '">' +
       '<select class="in" id="pc" style="width:auto"><option value="all">' + t('allCats') + '</option>' + D.categories.map((c) => '<option value="' + c.id + '"' + (c.id === posCat ? ' selected' : '') + '>' + c.emoji + ' ' + esc(cName(c)) + '</option>').join('') + '</select></div>' +
       '<div class="plist" id="plist"></div></div>' +
-      '<div class="panel bill"><h3>' + t('billTitle') + '</h3><div class="fg" style="grid-template-columns:1fr 1fr"><div><label>' + t('custName') + '</label><input class="in" id="bn" placeholder="' + esc(t('optName')) + '"></div><div><label>' + t('mobile') + '</label><input class="in" id="bp" inputmode="numeric" placeholder="' + esc(t('optional')) + '"></div></div>' +
+      '<div class="panel bill"><h3>' + t('billTitle') + '</h3><div class="fg" style="grid-template-columns:1fr 1fr"><div><label for="bn">' + t('custName') + ' *</label><input class="in" id="bn" maxlength="60" autocomplete="name" required></div><div><label for="bp">' + t('mobile') + ' *</label><input class="in" id="bp" type="tel" inputmode="tel" maxlength="15" autocomplete="tel" required></div><div class="full"><label for="baddr">' + t('billAddress') + '</label><textarea class="in" id="baddr" rows="2" maxlength="300" autocomplete="street-address"></textarea></div></div>' +
       '<div class="lines" id="blines"></div><div id="bsum"></div></div></div>';
     $('#pq').oninput = (e) => { posQ = e.target.value; plist(); };
     $('#pc').onchange = (e) => { posCat = e.target.value; plist(); };
@@ -245,7 +249,7 @@
     const mrp = lines.reduce((a, l) => a + l.p.mrp * l.q, 0);
     extra = Math.min(extra, sub);
     $('#blines').innerHTML = lines.length ? lines.map((l) => '<div class="bl"><div><b>' + esc(pName(l.p)) + '</b><br><small style="color:var(--muted)">' + rupee(l.p.price) + ' × ' + l.q + '</small></div>' +
-      '<input type="number" min="1" max="' + Math.min(l.p.stock, 9999) + '" value="' + l.q + '" data-q="' + l.p.id + '" aria-label="' + esc(t('qty')) + '"><div style="text-align:right;min-width:70px"><b>' + rupee(l.p.price * l.q) + '</b><br><a href="#" data-r="' + l.p.id + '" style="color:var(--red);font-size:12px">' + t('remove') + '</a></div></div>').join('') : '<p style="color:var(--muted);padding:14px 0">' + t('pickLeft') + '</p>';
+      '<div class="qty-stepper"><button class="btn gh sm" type="button" data-qdec="' + l.p.id + '" aria-label="' + esc(t('dec')) + '"' + (l.q <= 1 ? ' disabled' : '') + '>−</button><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="' + l.q + '" data-q="' + l.p.id + '" aria-label="' + esc(t('qty')) + '"><button class="btn gh sm" type="button" data-qinc="' + l.p.id + '" aria-label="' + esc(t('inc')) + '">+</button></div><div style="text-align:right;min-width:70px"><b>' + rupee(l.p.price * l.q) + '</b><br><a href="#" data-r="' + l.p.id + '" style="color:var(--red);font-size:12px">' + t('remove') + '</a></div></div>').join('') : '<p style="color:var(--muted);padding:14px 0">' + t('pickLeft') + '</p>';
     $('#bsum').innerHTML =
       '<div class="row" style="justify-content:space-between"><span>' + t('mrpTotal') + '</span><span>' + rupee(mrp) + '</span></div>' +
       '<div class="row" style="justify-content:space-between"><span>' + t('subTotal') + '</span><span>' + rupee(sub) + '</span></div>' +
@@ -253,6 +257,18 @@
       '<div class="row" style="margin:6px 0"><label>' + t('payMode') + '</label><select class="in" id="bpay" style="width:auto">' + PAYS.map((k) => '<option value="' + k + '"' + (k === payment ? ' selected' : '') + '>' + payLabel(k) + '</option>').join('') + '</select></div>' +
       '<div class="tot"><span>' + t('total') + '</span><b>' + rupee(sub - extra) + '</b></div>' +
       '<div class="row"><button class="btn pri" id="bsave" style="flex:1;padding:12px"' + (lines.length ? '' : ' disabled') + '>' + t('saveBill') + '</button><button class="btn gh" id="bclear">' + t('clear') + '</button></div>';
+    const changeBillQuantity = (id, delta) => {
+      const p = D.products.find((x) => x.id === Number(id));
+      if (!p) return;
+      if (p.stock <= 0) { delete cart[p.id]; toast(t('onlyStock', { n: 0 }), 'err'); bill(); return; }
+      const quantity = (Number(cart[p.id]) || 1) + delta;
+      if (quantity > p.stock) { toast(t('onlyStock', { n: p.stock }), 'err'); return; }
+      if (quantity > 9999) { toast(t('qtyLimit'), 'err'); return; }
+      cart[p.id] = Math.max(1, quantity);
+      bill();
+    };
+    $$('#blines [data-qdec]').forEach((b) => b.onclick = () => changeBillQuantity(b.dataset.qdec, -1));
+    $$('#blines [data-qinc]').forEach((b) => b.onclick = () => changeBillQuantity(b.dataset.qinc, 1));
     $$('#blines [data-q]').forEach((i) => i.onchange = () => {
       const p = D.products.find((x) => x.id === Number(i.dataset.q));
       if (p.stock <= 0) { delete cart[p.id]; toast(t('onlyStock', { n: 0 }), 'err'); bill(); return; }
@@ -270,9 +286,19 @@
   async function saveBill() {
     const btn = $('#bsave'); btn.disabled = true;
     try {
+      const name = $('#bn').value.trim();
+      const phoneDigits = $('#bp').value.replace(/\D/g, '');
+      if (name.length < 2) {
+        $('#bn').focus();
+        throw new Error(t('billNameRequired'));
+      }
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        $('#bp').focus();
+        throw new Error(t('billPhoneRequired'));
+      }
       const r = await api('/api/admin/bills', 'POST', {
         items: Object.entries(cart).map(([id, qty]) => ({ id: Number(id), qty })),
-        extraDiscount: extra, payment, name: $('#bn').value, phone: $('#bp').value,
+        extraDiscount: extra, payment, name, phone: $('#bp').value, address: $('#baddr').value,
       });
       cart = {}; extra = 0;
       await reload();
@@ -284,18 +310,28 @@
 
   function printBill(b) {
     const s = D.settings;
-    $('#receipt').innerHTML = '<div class="rc">' + (s.logo ? '<div class="rc-logo-wrap"><img class="rc-logo" src="' + esc(s.logo) + '" alt=""></div>' : '') + '<h1>' + esc(shopText(s.shopName, s.shopNameEn)) + '</h1><div class="c">' + esc(shopText(s.address, s.addressEn)) + '<br>📞 ' + esc(s.phone) +
-      (s.gstNo ? '<br>GSTIN: ' + esc(s.gstNo) : '') + (s.licenseNo ? '<br>' + t('rcLic') + ': ' + esc(s.licenseNo) : '') + '</div><hr>' +
-      '<div class="t"><span>' + esc(b.id) + '</span><span>' + fmtDate(b.createdAt) + '</span></div>' +
-      (b.customer && b.customer.name ? '<div>' + t('rcCust') + ': ' + esc(b.customer.name) + ' ' + esc(b.customer.phone || '') + '</div>' : '') + '<hr>' +
-      '<table style="width:100%"><tr><th style="text-align:left">' + t('rcItem') + '</th><th>' + t('rcQty') + '</th><th style="text-align:right">' + t('rcAmt') + '</th></tr>' +
-      b.lines.map((l) => '<tr><td>' + esc(pName(l)) + '<br><small>' + rupee(l.price) + '</small></td><td style="text-align:center">' + l.qty + '</td><td style="text-align:right">' + rupee(l.amount) + '</td></tr>').join('') + '</table><hr>' +
-      '<div class="t"><span>' + t('mrpTotal') + '</span><span>' + rupee(b.mrpTotal) + '</span></div>' +
-      (b.extraDiscount ? '<div class="t"><span>' + t('rcExtra') + '</span><span>- ' + rupee(b.extraDiscount) + '</span></div>' : '') +
-      '<div class="t g"><span>' + t('total') + '</span><span>' + rupee(b.total) + '</span></div>' +
-      '<div class="t"><span>' + t('rcSaved') + '</span><span>' + rupee(b.mrpTotal - b.total) + '</span></div>' +
-      '<div class="t"><span>' + t('rcPaid') + '</span><span>' + (b.payment ? payLabel(b.payment) : t('rcPending')) + '</span></div><hr>' +
-      '<div class="c">' + t('rcThanks') + '<br>' + t('rcSafe') + '</div></div>';
+    const customer = b.customer || {};
+    const address = customer.address ? esc(customer.address).replace(/\r?\n/g, '<br>') : '<span class="rc-blank"></span>';
+    $('#receipt').innerHTML = '<div class="rc">' +
+      '<header class="rc-header">' + (s.logo ? '<div class="rc-logo-wrap"><img class="rc-logo" src="' + esc(s.logo) + '" alt=""></div>' : '') +
+      '<h1>' + esc(shopText(s.shopName, s.shopNameEn)) + '</h1><div class="rc-shop-info">' + esc(shopText(s.address, s.addressEn)) +
+      '<br>☎ ' + esc(s.phone) + (s.gstNo ? '<br>GSTIN: ' + esc(s.gstNo) : '') + (s.licenseNo ? '<br>' + t('rcLic') + ': ' + esc(s.licenseNo) : '') + '</div></header>' +
+      '<section class="rc-card"><div class="rc-meta"><div><small>' + t('rcBillNo') + '</small><strong>' + esc(b.id) + '</strong></div><div><small>' + t('rcDate') + '</small><strong>' + fmtDate(b.createdAt) + '</strong></div></div>' +
+      (customer.name || customer.phone ? '<div class="rc-customer-summary"><strong>' + esc(customer.name || '') + '</strong><span>' + esc(customer.phone || '') + '</span></div>' : '') +
+      '<table class="rc-items"><thead><tr><th>' + t('rcItem') + '</th><th>' + t('rcQty') + '</th><th>' + t('rcAmt') + '</th></tr></thead><tbody>' +
+      b.lines.map((l) => '<tr><td>' + esc(pName(l)) + '<small>' + rupee(l.price) + '</small></td><td>' + l.qty + '</td><td>' + rupee(l.amount) + '</td></tr>').join('') + '</tbody></table>' +
+      '<div class="rc-summary"><div class="rc-row"><span>' + t('mrpTotal') + '</span><span>' + rupee(b.mrpTotal) + '</span></div>' +
+      '<div class="rc-row"><span>' + t('subTotal') + '</span><span>' + rupee(b.subtotal ?? b.total) + '</span></div>' +
+      (b.extraDiscount ? '<div class="rc-row"><span>' + t('rcExtra') + '</span><span>− ' + rupee(b.extraDiscount) + '</span></div>' : '') +
+      '<div class="rc-row rc-total"><strong>' + t('total') + '</strong><strong>' + rupee(b.total) + '</strong></div>' +
+      '<div class="rc-row"><span>' + t('rcSaved') + '</span><span>' + rupee(b.mrpTotal - b.total) + '</span></div>' +
+      '<div class="rc-row"><span>' + t('rcPaid') + '</span><span>' + (b.payment ? payLabel(b.payment) : t('rcPending')) + '</span></div></div>' +
+      '<footer class="rc-thanks">' + t('rcThanks') + '<br><small>' + t('rcSafe') + '</small></footer></section>' +
+      '<div class="rc-cut"><span>✂</span><span class="rc-cutline"></span><span>' + t('rcCutHere') + '</span><span class="rc-cutline"></span><span>✂</span></div>' +
+      '<section class="rc-courier"><h2>' + t('rcCourierSlip') + '</h2>' +
+      '<div class="rc-field"><span>' + t('rcCust') + '</span><strong>' + esc(customer.name || '') + '</strong></div>' +
+      '<div class="rc-field"><span>' + t('mobile') + '</span><strong>' + esc(customer.phone || '') + '</strong></div>' +
+      '<div class="rc-address"><span>' + t('rcAddress') + '</span><div>' + address + '</div></div></section></div>';
     const logo = $('#receipt .rc-logo');
     if (logo && !logo.complete) {
       logo.onload = () => window.print();
@@ -487,17 +523,21 @@
 
   /* ---------- products ---------- */
   let pf = '', productCategory = 'all', productStock = 'all', productSort = 'name';
+  let inventoryTab = 'adjustment';
   const stockState = (p) => p.stock <= 0 ? 'out' : p.stock <= (p.lowStockThreshold ?? 10) ? 'low' : 'ok';
   const movementReason = (m) => {
     const key = m.kind === 'manual' ? 'stockReason_' + m.reason : 'stockKind_' + m.kind;
     return t(key) === key ? m.kind : t(key);
   };
-  const movementRows = (items, includeProduct = true) => items.map((m) =>
-    '<tr><td>' + fmtDate(m.createdAt) + '</td>' +
-    (includeProduct ? '<td>' + esc(m.productName) + (m.reference ? '<br><small>' + esc(m.reference) + '</small>' : '') + '</td>' : '') +
-    '<td>' + esc(movementReason(m)) + (m.note ? '<br><small>' + esc(m.note) + '</small>' : '') + '</td>' +
-    '<td class="n ' + (m.change > 0 ? 'stock-positive' : 'stock-negative') + '">' + (m.change > 0 ? '+' : '') + m.change + '</td>' +
-    '<td class="n">' + m.stockBefore + ' → ' + m.stockAfter + '</td></tr>').join('');
+  const movementRows = (items, includeProduct = true) => items.map((m) => {
+    const product = D.products.find((p) => p.id === m.productId);
+    const productName = product ? pName(product) : m.productName;
+    return '<tr><td>' + fmtDate(m.createdAt) + '</td>' +
+      (includeProduct ? '<td>' + esc(productName || '') + (m.reference ? '<br><small>' + esc(m.reference) + '</small>' : '') + '</td>' : '') +
+      '<td>' + esc(movementReason(m)) + (m.note ? '<br><small>' + esc(m.note) + '</small>' : '') + '</td>' +
+      '<td class="n ' + (m.change > 0 ? 'stock-positive' : 'stock-negative') + '">' + (m.change > 0 ? '+' : '') + m.change + '</td>' +
+      '<td class="n">' + m.stockBefore + ' → ' + m.stockAfter + '</td></tr>';
+  }).join('');
   function products() {
     const q = pf.trim().toLowerCase();
     const list = D.products.filter((p) => {
@@ -519,8 +559,10 @@
         '<td><div class="row"><button class="btn sm pri" data-adjust="' + p.id + '">' + t('adjustStock') + '</button><button class="btn sm gh" data-history="' + p.id + '">' + t('stockHistory') + '</button><button class="btn sm" data-e="' + p.id + '">' + t('edit') + '</button></div></td></tr>';
     }).join('');
     const recent = (D.stockMovements || []).slice(0, 20);
-    view.innerHTML = '<h2 class="title">' + t('productsTitle') + ' <button class="btn pri" id="addP" style="margin-left:auto">' + t('addProduct') + '</button></h2>' +
-      '<div class="cards"><div class="stat"><small>' + t('inventoryProducts') + '</small><b>' + D.products.length + '</b></div><div class="stat b"><small>' + t('inventoryUnits') + '</small><b>' + totalUnits.toLocaleString(locale()) + '</b></div>' +
+    const recentPanel = '<div class="panel" style="margin:0 0 18px"><h3>' + t('recentMovements') + '</h3>' +
+      (recent.length ? '<div class="tw"><table><tr><th>' + t('colTime') + '</th><th>' + t('colProduct') + '</th><th>' + t('stockReason') + '</th><th class="n">' + t('stockChange') + '</th><th class="n">' + t('stockBalance') + '</th></tr>' + movementRows(recent) + '</table></div>' :
+        '<p style="color:var(--muted)">' + t('stockNoMovements') + '</p>') + '</div>';
+    const adjustmentPanel = '<div class="cards"><div class="stat"><small>' + t('inventoryProducts') + '</small><b>' + D.products.length + '</b></div><div class="stat b"><small>' + t('inventoryUnits') + '</small><b>' + totalUnits.toLocaleString(locale()) + '</b></div>' +
       '<div class="stat o"><small>' + t('inventoryLow') + '</small><b>' + lowCount + '</b></div><div class="stat r"><small>' + t('inventoryOut') + '</small><b>' + outCount + '</b></div></div>' +
       '<div class="fg" style="margin-bottom:12px"><div><label for="pfq">' + t('inventorySearch') + '</label><input class="in" id="pfq" placeholder="' + esc(t('searchPh2')) + '" value="' + esc(pf) + '"></div>' +
       '<div><label for="productCategory">' + t('inventoryCategory') + '</label><select class="in" id="productCategory"><option value="all">' + t('allCats') + '</option>' + D.categories.map((c) => '<option value="' + esc(c.id) + '"' + (productCategory === c.id ? ' selected' : '') + '>' + esc(c.emoji + ' ' + cName(c)) + '</option>').join('') + '</select></div>' +
@@ -530,15 +572,21 @@
       [['name', 'sortName'], ['stock_asc', 'sortStockAsc'], ['stock_desc', 'sortStockDesc']].map(([value, label]) => '<option value="' + value + '"' + (productSort === value ? ' selected' : '') + '>' + t(label) + '</option>').join('') + '</select></div></div>' +
       '<p style="color:var(--muted);margin:0 0 8px">' + t('inventoryMatches', { shown: list.length, total: D.products.length }) + '</p>' +
       '<div class="tw"><table><tr><th>' + t('colProduct') + '</th><th>' + t('colCat') + '</th><th class="n">MRP</th><th class="n">' + t('colSell') + '</th><th class="n">' + t('colStock') + '</th><th>' + t('colShow') + '</th><th>' + t('actions') + '</th></tr>' +
-      (rows || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">' + t('inventoryNoProducts') + '</td></tr>') + '</table></div>' +
-      '<div class="panel" style="margin-top:18px"><h3>' + t('recentMovements') + '</h3>' +
-      (recent.length ? '<div class="tw"><table><tr><th>' + t('colTime') + '</th><th>' + t('colProduct') + '</th><th>' + t('stockReason') + '</th><th class="n">' + t('stockChange') + '</th><th class="n">' + t('stockBalance') + '</th></tr>' + movementRows(recent) + '</table></div>' :
-        '<p style="color:var(--muted)">' + t('stockNoMovements') + '</p>') + '</div>';
+      (rows || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">' + t('inventoryNoProducts') + '</td></tr>') + '</table></div>';
+    view.innerHTML = '<h2 class="title">' + t('productsTitle') + ' <button class="btn pri" id="addP" style="margin-left:auto">' + t('addProduct') + '</button></h2>' +
+      '<div class="row" role="group" aria-label="' + esc(t('productsTitle')) + '" style="margin-bottom:18px">' +
+      '<button class="btn sm ' + (inventoryTab === 'adjustment' ? 'pri' : 'gh') + '" type="button" aria-pressed="' + (inventoryTab === 'adjustment') + '" data-inventory-tab="adjustment">' + t('stockAdjustmentTab') + '</button>' +
+      '<button class="btn sm ' + (inventoryTab === 'movements' ? 'pri' : 'gh') + '" type="button" aria-pressed="' + (inventoryTab === 'movements') + '" data-inventory-tab="movements">' + t('stockMovementsTab') + '</button></div>' +
+      (inventoryTab === 'movements' ? recentPanel : adjustmentPanel);
+    $$('[data-inventory-tab]').forEach((button) => button.onclick = () => {
+      inventoryTab = button.dataset.inventoryTab;
+      products();
+    });
     $('#addP').onclick = () => prodModal();
-    $('#pfq').oninput = (e) => { pf = e.target.value; const pos = e.target.selectionStart; products(); const el = $('#pfq'); el.focus(); el.setSelectionRange(pos, pos); };
-    $('#productCategory').onchange = (e) => { productCategory = e.target.value; products(); };
-    $('#productStock').onchange = (e) => { productStock = e.target.value; products(); };
-    $('#productSort').onchange = (e) => { productSort = e.target.value; products(); };
+    if ($('#pfq')) $('#pfq').oninput = (e) => { pf = e.target.value; const pos = e.target.selectionStart; products(); const el = $('#pfq'); el.focus(); el.setSelectionRange(pos, pos); };
+    if ($('#productCategory')) $('#productCategory').onchange = (e) => { productCategory = e.target.value; products(); };
+    if ($('#productStock')) $('#productStock').onchange = (e) => { productStock = e.target.value; products(); };
+    if ($('#productSort')) $('#productSort').onchange = (e) => { productSort = e.target.value; products(); };
     $$('[data-e]').forEach((b) => b.onclick = () => prodModal(D.products.find((p) => p.id === Number(b.dataset.e))));
     $$('[data-adjust]').forEach((b) => b.onclick = () => stockModal(D.products.find((p) => p.id === Number(b.dataset.adjust))));
     $$('[data-history]').forEach((b) => b.onclick = () => stockHistory(D.products.find((p) => p.id === Number(b.dataset.history))));
@@ -548,14 +596,14 @@
     openModal('<div class="row" style="justify-content:space-between"><h3>' + t('adjustStock') + ' - ' + esc(pName(p)) + '</h3><button class="btn gh sm" id="stockClose">✕</button></div>' +
       '<p style="margin:8px 0 14px">' + t('currentStock') + ': <b>' + p.stock + '</b> ' + esc(unitText(p.unit)) + '</p>' +
       '<div class="fg"><div><label for="stockMode">' + t('stockMode') + '</label><select class="in" id="stockMode"><option value="add">' + t('stockModeAdd') + '</option><option value="remove">' + t('stockModeRemove') + '</option><option value="set">' + t('stockModeSet') + '</option></select></div>' +
-      '<div><label for="stockAmount">' + t('stockQuantity') + '</label><input class="in" id="stockAmount" type="number" min="1" step="1" value="1"></div>' +
+      '<div><label for="stockAmount">' + t('stockQuantity') + '</label><div class="qty-stepper"><button class="btn gh sm" id="stockAmountDec" type="button" aria-label="' + esc(t('dec')) + '">−</button><input class="in" id="stockAmount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="1" aria-label="' + esc(t('stockQuantity')) + '"><button class="btn gh sm" id="stockAmountInc" type="button" aria-label="' + esc(t('inc')) + '">+</button></div></div>' +
       '<div><label for="stockReason">' + t('stockReason') + '</label><select class="in" id="stockReason" required>' +
       [['restock', 'stockReason_restock'], ['damaged', 'stockReason_damaged'], ['correction', 'stockReason_correction'], ['return', 'stockReason_return'], ['other', 'stockReason_other']].map(([value, label]) => '<option value="' + value + '">' + t(label) + '</option>').join('') + '</select></div>' +
       '<div><label for="stockNote">' + t('stockNote') + '</label><input class="in" id="stockNote" maxlength="200"></div></div>' +
       '<p id="stockPreview" style="margin:12px 0;color:var(--muted)"></p><div class="row"><button class="btn pri" id="stockSave">' + t('save') + '</button><button class="btn gh" id="stockCancel">' + t('cancel') + '</button></div>');
     const mode = $('#stockMode'), amount = $('#stockAmount'), preview = $('#stockPreview'), save = $('#stockSave');
     const updatePreview = () => {
-      const value = Number(amount.value);
+      const value = amount.value.trim() ? Number(amount.value) : NaN;
       const delta = mode.value === 'add' ? value : mode.value === 'remove' ? -value : value - p.stock;
       const after = p.stock + delta;
       const reason = $('#stockReason').value;
@@ -564,8 +612,16 @@
       preview.textContent = t('stockNewBalance', { n: Number.isSafeInteger(after) ? after : '-' });
       save.disabled = !valid;
     };
-    mode.onchange = () => { amount.min = mode.value === 'set' ? '0' : '1'; amount.value = mode.value === 'set' ? String(p.stock) : '1'; updatePreview(); };
+    const changeAmount = (delta) => {
+      const current = /^\d+$/.test(amount.value) ? Number(amount.value) : 0;
+      const minimum = mode.value === 'set' ? 0 : 1;
+      amount.value = String(Math.max(minimum, Math.min(10000000, current + delta)));
+      updatePreview();
+    };
+    mode.onchange = () => { amount.value = mode.value === 'set' ? String(p.stock) : '1'; updatePreview(); };
     amount.oninput = updatePreview;
+    $('#stockAmountDec').onclick = () => changeAmount(-1);
+    $('#stockAmountInc').onclick = () => changeAmount(1);
     $('#stockReason').onchange = updatePreview;
     $('#stockClose').onclick = closeModal;
     $('#stockCancel').onclick = closeModal;

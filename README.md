@@ -66,10 +66,13 @@ SERVER DEPLOYMENT (LINUX OR MANAGED HOST)
   SMTP_PORT=587, SMTP_SECURE=false, SMTP_USER, SMTP_PASS (a Google App Password), and
   SMTP_FROM set to the same Gmail address. EMAIL_FROM, if set, should also match. SMTP is
   selected whenever SMTP_HOST is set. Alternatively, Resend can be used via RESEND_API_KEY
-  and EMAIL_FROM when SMTP_HOST is unset. Admin password recovery
-  also requires PUBLIC_BASE_URL and a recovery email saved in Admin > Settings. Do not
-  commit SMTP credentials. See `.env.example` for the variable names; it is a reference
-  template only and is not loaded automatically.
+  and EMAIL_FROM when SMTP_HOST is unset. Admin sign-in uses the admin email saved in
+  Admin > Settings together with the password; if no email is configured yet, the first
+  successful sign-in saves the entered email as the admin email. Password recovery also
+  requires PUBLIC_BASE_URL and that email in Admin > Settings. Do not
+  commit SMTP credentials. See `.env.example` for the variable names. The app loads `.env`
+  automatically for local startup; existing shell and hosting environment variables take
+  priority over values in `.env`.
 
   For Railway with Gmail, set the SMTP variables above in the deployed service's Variables.
   Google App Passwords require 2-Step Verification. With SMTP_HOST set, Gmail SMTP is used

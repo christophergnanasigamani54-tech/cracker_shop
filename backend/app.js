@@ -1195,10 +1195,18 @@ async function api(req, res, pathname, query) {
     const f = fails.get(ip);
     if (f && f.until > Date.now()) throw new HttpError(429, 'சிறிது நேரம் கழித்து முயற்சிக்கவும்');
     const b = await readBody(req);
-    if (!checkPassword(b.password, db.settings.adminHash)) {
+    const email = typeof b.email === 'string' ? b.email.trim().toLowerCase() : '';
+    const configuredEmail = String(db.settings.adminEmail || '').trim().toLowerCase();
+    const validEmail = email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const passwordValid = checkPassword(b.password, db.settings.adminHash);
+    if (!validEmail || (configuredEmail && email !== configuredEmail) || !passwordValid) {
       const n = (f ? f.n : 0) + 1;
       fails.set(ip, { n, until: n >= 5 ? Date.now() + 60000 : 0 });
-      throw new HttpError(401, 'கடவுச்சொல் தவறு');
+      throw new HttpError(401, msg(langOf(req), 'மின்னஞ்சல் அல்லது கடவுச்சொல் தவறு', 'Email or password is incorrect'));
+    }
+    if (!configuredEmail) {
+      db.settings.adminEmail = email;
+      await saveDb();
     }
     fails.delete(ip);
     return setSessionCookie(res, startSession('admin'), 'admin');
@@ -1361,6 +1369,11 @@ async function api(req, res, pathname, query) {
   // counter bill
   if (method === 'POST' && pathname === '/api/admin/bills') {
     const b = await readBody(req);
+    const lang = langOf(req);
+    const name = str(b.name, 60);
+    const phone = normalizePhone(b.phone);
+    if (name.length < 2) throw new HttpError(400, msg(lang, 'வாடிக்கையாளர் பெயரை உள்ளிடவும்', 'Please enter the customer name'));
+    if (phone.length < 10 || phone.length > 15) throw new HttpError(400, msg(lang, 'சரியான மொபைல் எண்ணை உள்ளிடவும்', 'Please enter a valid mobile number'));
     const lines = buildLines(b.items, { activeOnly: false });
     const subtotal = sum(lines, 'amount');
     const extra = Math.min(subtotal, clampInt(b.extraDiscount, 0, 10000000));
@@ -1368,7 +1381,7 @@ async function api(req, res, pathname, query) {
     const bill = {
       id: 'BILL-' + pad(++db.counters.bill),
       createdAt: new Date().toISOString(),
-      customer: { name: str(b.name, 60), phone: str(b.phone, 15) },
+      customer: { name, phone, address: str(b.address, 300) },
       payment: pay, lines, mrpTotal: lines.reduce((a, l) => a + l.mrp * l.qty, 0),
       subtotal, extraDiscount: extra, total: subtotal - extra,
     };

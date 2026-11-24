@@ -54,24 +54,52 @@ test('PostgreSQL transactions keep inventory and bills consistent', {
     const baseUrl = 'http://127.0.0.1:' + port;
     await waitForServer(child, baseUrl, () => serverOutput);
 
-    const login = await request(baseUrl, '/api/login', {
+    const passwordOnlyLogin = await request(baseUrl, '/api/login', {
       method: 'POST',
       body: { password: 'admin123' },
+    });
+    assert.equal(passwordOnlyLogin.status, 401);
+
+    const login = await request(baseUrl, '/api/login', {
+      method: 'POST',
+      body: { email: 'admin@example.com', password: 'admin123' },
     });
     assert.equal(login.status, 200);
     const cookie = (login.headers.get('set-cookie') || '').split(';')[0];
     assert.match(cookie, /^adminSid=/);
+
+    const wrongLoginEmail = await request(baseUrl, '/api/login', {
+      method: 'POST',
+      body: { email: 'other@example.com', password: 'admin123' },
+    });
+    assert.equal(wrongLoginEmail.status, 401);
+    const firstAdminData = await request(baseUrl, '/api/admin/data', { cookie });
+    assert.equal((await firstAdminData.json()).settings.adminEmail, 'admin@example.com');
 
     const categoriesResponse = await request(baseUrl, '/api/public');
     const categories = (await categoriesResponse.json()).categories;
     assert.ok(categories.length > 0);
 
     const firstProduct = await createProduct(baseUrl, cookie, categories[0].id, 'Concurrent sale');
+    const missingNameBill = await request(baseUrl, '/api/admin/bills', {
+      method: 'POST',
+      cookie,
+      body: { phone: '9876543210', items: [{ id: firstProduct.id, qty: 1 }], payment: 'cash' },
+    });
+    assert.equal(missingNameBill.status, 400);
+    const missingPhoneBill = await request(baseUrl, '/api/admin/bills', {
+      method: 'POST',
+      cookie,
+      body: { name: 'Test Customer', items: [{ id: firstProduct.id, qty: 1 }], payment: 'cash' },
+    });
+    assert.equal(missingPhoneBill.status, 400);
     const competingSales = await Promise.all([
       createBill(baseUrl, cookie, firstProduct.id),
       createBill(baseUrl, cookie, firstProduct.id),
     ]);
     assert.deepEqual(competingSales.map((response) => response.status).sort(), [200, 400]);
+    const savedSale = competingSales.find((response) => response.status === 200);
+    assert.equal((await savedSale.json()).bill.customer.address, '123 Courier Street');
 
     const firstProductRow = await adminClient.query(
       'SELECT data FROM ' + quotedSchema + '.shop_products WHERE id = $1',
@@ -139,7 +167,7 @@ function createBill(baseUrl, cookie, productId) {
   return request(baseUrl, '/api/admin/bills', {
     method: 'POST',
     cookie,
-    body: { items: [{ id: productId, qty: 1 }], payment: 'cash' },
+    body: { name: 'Test Customer', phone: '9876543210', address: '123 Courier Street', items: [{ id: productId, qty: 1 }], payment: 'cash' },
   });
 }
 
